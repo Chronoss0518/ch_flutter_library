@@ -70,6 +70,15 @@ class SceneManager extends StatefulWidget {
 }
 
 class SceneManagerState extends State<SceneManager> {
+  //Initialize Release//
+  void _init() {
+    if (_isInitFlg) return;
+    _timerStart();
+    setScene(widget._startScene!);
+    widget._startScene = null;
+    _isInitFlg = true;
+  }
+
   //SetFunctions//
   void setAppBar(AppBar? appBar) {
     _appBar = appBar;
@@ -127,18 +136,9 @@ class SceneManagerState extends State<SceneManager> {
   }
 
   //OverrideFunction//
-
-  @override
-  void initState() {
-    super.initState();
-    _timerStart();
-    setScene(widget._startScene!);
-    widget._startScene = null;
-    _isInitFlg = true;
-  }
-
   @override
   Widget build(BuildContext context) {
+    _init();
     Widget body = _scene ?? Container();
     return Scaffold(
       appBar: _appBar,
