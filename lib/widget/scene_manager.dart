@@ -53,6 +53,7 @@ abstract class BaseScene extends StatelessWidget {
   }
 
   SceneManager? _manager = null;
+  BuildContext? get context => _manager?._getContext();
 }
 
 class SceneManager extends StatefulWidget {
@@ -86,6 +87,12 @@ class SceneManager extends StatefulWidget {
     _timerStart();
   }
 
+//GetFunctions//
+
+  BuildContext? _getContext() {
+    return _context;
+  }
+
 //ClearFunctions//
 
   void clearAppBar() {
@@ -109,6 +116,7 @@ class SceneManager extends StatefulWidget {
   AppBar? _appBar = null;
   BaseScene? _scene = null;
   BottomNavigationBar? _bottomNavigationBar = null;
+  BuildContext? _context = null;
 
   late Timer _timer;
   int _fps = 60;
@@ -118,6 +126,9 @@ class SceneManager extends StatefulWidget {
 }
 
 class SceneManagerState extends State<SceneManager> {
+  SceneManagerState() {
+    widget._context = context;
+  }
   @override
   Widget build(BuildContext context) {
     Widget body = widget._scene ?? Container();
