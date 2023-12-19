@@ -76,21 +76,27 @@ class SceneManagerState extends State<SceneManager> {
 
   //SetFunctions//
   void setAppBar(AppBar? appBar) {
-    _appBar = appBar;
+    setState(() {
+      _appBar = appBar;
+    });
   }
 
   void setBottomNavigationBar(BottomNavigationBar? bottomNavigationBar) {
-    _bottomNavigationBar = bottomNavigationBar;
+    setState(() {
+      _bottomNavigationBar = bottomNavigationBar;
+    });
   }
 
   void setScene(BaseScene scene) {
     if (scene._state != null) return;
-    _scene?.release();
-    _scene?._state = null;
+    setState(() {
+      _scene?.release();
+      _scene?._state = null;
 
-    scene.init();
-    _scene = scene;
-    _scene?._state = this;
+      scene.init();
+      _scene = scene;
+      _scene?._state = this;
+    });
   }
 
   void setFps(int fps) {
@@ -103,11 +109,15 @@ class SceneManagerState extends State<SceneManager> {
 //ClearFunctions//
 
   void clearAppBar() {
-    _appBar = null;
+    setState(() {
+      _appBar = null;
+    });
   }
 
   void clearBottomNavigationBar() {
-    _bottomNavigationBar = null;
+    setState(() {
+      _bottomNavigationBar = null;
+    });
   }
 
 //PrivateFunctions//
