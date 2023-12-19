@@ -94,9 +94,9 @@ class SceneManagerState extends State<SceneManager> {
       _scene?.release();
       _scene?._state = null;
 
-      scene.init();
       _scene = scene;
       _scene?._state = this;
+      scene.init();
     });
   }
 
