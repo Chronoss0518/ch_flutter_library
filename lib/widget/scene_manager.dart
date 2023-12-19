@@ -59,10 +59,11 @@ abstract class BaseScene extends StatelessWidget {
 class SceneManager extends StatefulWidget {
   //Constructor Destructor//
   SceneManager(BaseScene startScene, {super.key}) {
-    state.setScene(startScene);
+    _startScene = startScene;
   }
 
   SceneManagerState state = SceneManagerState();
+  BaseScene? _startScene = null;
   //OverrideFunction//
   @override
   State<SceneManager> createState() => state;
@@ -138,6 +139,13 @@ class SceneManagerState extends State<SceneManager> {
   int _fps = 60;
 
   //OverrideFunction//
+
+  @override
+  void initState() {
+    super.initState();
+    setScene(widget._startScene!);
+    widget._startScene = null;
+  }
 
   @override
   Widget build(BuildContext context) {
