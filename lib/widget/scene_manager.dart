@@ -25,41 +25,52 @@ abstract class BaseScene extends StatelessWidget {
 
   //SetFunctions//
   void setAppBar(AppBar? appBar) {
-    _manager?.setAppBar(appBar);
+    _state?.setAppBar(appBar);
   }
 
   void setBottomNavigationBar(BottomNavigationBar? bottomNavigationBar) {
-    _manager?.setBottomNavigationBar(bottomNavigationBar);
+    _state?.setBottomNavigationBar(bottomNavigationBar);
   }
 
   void setFps(int fps) {
-    _manager?.setFps(fps);
+    _state?.setFps(fps);
   }
 
   //ChangeScene//
 
   void changeScene(BaseScene scene) {
-    _manager?.setScene(scene);
+    _state?.setScene(scene);
   }
 
 //ClearFunctions//
 
   void clearAppBar() {
-    _manager?.clearAppBar();
+    _state?.clearAppBar();
   }
 
   void clearBottomNavigationBar() {
-    _manager?.clearBottomNavigationBar();
+    _state?.clearBottomNavigationBar();
   }
 
-  SceneManager? _manager = null;
-  BuildContext? get context => _manager?._getContext();
+  SceneManagerState? _state;
+  BuildContext? get context => _state?.context;
 }
 
 class SceneManager extends StatefulWidget {
   //Constructor Destructor//
   SceneManager(BaseScene startScene, {super.key}) {
-    setScene(startScene);
+    state.setScene(startScene);
+  }
+
+  SceneManagerState state = SceneManagerState();
+  //OverrideFunction//
+  @override
+  State<SceneManager> createState() => state;
+}
+
+class SceneManagerState extends State<SceneManager> {
+  //Constructor Destructor//
+  SceneManagerState() {
     _timerStart();
   }
 
@@ -73,11 +84,13 @@ class SceneManager extends StatefulWidget {
   }
 
   void setScene(BaseScene scene) {
-    if (scene._manager != null) return;
+    if (scene._state != null) return;
     _scene?.release();
+    _scene?._state = null;
+
     scene.init();
     _scene = scene;
-    _scene?._manager = this;
+    _scene?._state = this;
   }
 
   void setFps(int fps) {
@@ -85,12 +98,6 @@ class SceneManager extends StatefulWidget {
     _fps = fps;
     _timer.cancel();
     _timerStart();
-  }
-
-//GetFunctions//
-
-  BuildContext? _getContext() {
-    return _context;
   }
 
 //ClearFunctions//
@@ -116,26 +123,19 @@ class SceneManager extends StatefulWidget {
   AppBar? _appBar = null;
   BaseScene? _scene = null;
   BottomNavigationBar? _bottomNavigationBar = null;
-  BuildContext? _context = null;
 
   late Timer _timer;
   int _fps = 60;
-  //OverrideFunction//
-  @override
-  State<SceneManager> createState() => SceneManagerState();
-}
 
-class SceneManagerState extends State<SceneManager> {
-  SceneManagerState() {
-    widget._context = context;
-  }
+  //OverrideFunction//
+
   @override
   Widget build(BuildContext context) {
-    Widget body = widget._scene ?? Container();
+    Widget body = _scene ?? Container();
     return Scaffold(
-      appBar: widget._appBar,
+      appBar: _appBar,
       body: body,
-      bottomNavigationBar: widget._bottomNavigationBar,
+      bottomNavigationBar: _bottomNavigationBar,
     );
   }
 }
