@@ -70,34 +70,30 @@ class SceneManager extends StatefulWidget {
 }
 
 class SceneManagerState extends State<SceneManager> {
-  //Constructor Destructor//
-  SceneManagerState() {
-    _timerStart();
-  }
-
   //SetFunctions//
   void setAppBar(AppBar? appBar) {
-    setState(() {
-      _appBar = appBar;
-    });
+    _appBar = appBar;
+    if (!_isInitFlg) return;
+    setState(() {});
   }
 
   void setBottomNavigationBar(BottomNavigationBar? bottomNavigationBar) {
-    setState(() {
-      _bottomNavigationBar = bottomNavigationBar;
-    });
+    _bottomNavigationBar = bottomNavigationBar;
+    if (!_isInitFlg) return;
+    setState(() {});
   }
 
   void setScene(BaseScene scene) {
     if (scene._state != null) return;
-    setState(() {
-      _scene?.release();
-      _scene?._state = null;
+    _scene?.release();
+    _scene?._state = null;
 
-      _scene = scene;
-      _scene?._state = this;
-      scene.init();
-    });
+    _scene = scene;
+    _scene?._state = this;
+    scene.init();
+
+    if (!_isInitFlg) return;
+    setState(() {});
   }
 
   void setFps(int fps) {
@@ -110,15 +106,15 @@ class SceneManagerState extends State<SceneManager> {
 //ClearFunctions//
 
   void clearAppBar() {
-    setState(() {
-      _appBar = null;
-    });
+    _appBar = null;
+    if (!_isInitFlg) return;
+    setState(() {});
   }
 
   void clearBottomNavigationBar() {
-    setState(() {
-      _bottomNavigationBar = null;
-    });
+    _bottomNavigationBar = null;
+    if (!_isInitFlg) return;
+    setState(() {});
   }
 
 //PrivateFunctions//
@@ -130,21 +126,15 @@ class SceneManagerState extends State<SceneManager> {
     });
   }
 
-  //Values//
-  AppBar? _appBar = null;
-  BaseScene? _scene = null;
-  BottomNavigationBar? _bottomNavigationBar = null;
-
-  late Timer _timer;
-  int _fps = 60;
-
   //OverrideFunction//
 
   @override
   void initState() {
     super.initState();
+    _timerStart();
     setScene(widget._startScene!);
     widget._startScene = null;
+    _isInitFlg = true;
   }
 
   @override
@@ -156,4 +146,13 @@ class SceneManagerState extends State<SceneManager> {
       bottomNavigationBar: _bottomNavigationBar,
     );
   }
+
+  //Values//
+  AppBar? _appBar = null;
+  BaseScene? _scene = null;
+  BottomNavigationBar? _bottomNavigationBar = null;
+
+  late Timer _timer;
+  int _fps = 60;
+  bool _isInitFlg = false;
 }
