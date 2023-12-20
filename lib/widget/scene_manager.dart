@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-abstract class SendBeforeSceneData {}
+/*
+Sceneを跨ぐ際に利用する保持したい情報をも損するためのクラス
+*/
+abstract class SaveData {}
 
 /*
 このクラスはSceneManagerが管理します。
@@ -17,7 +20,7 @@ abstract class SendBeforeSceneData {}
 abstract class BaseScene {
   @mustCallSuper
   @protected
-  void init({SendBeforeSceneData? sendData}) {}
+  void init({SaveData? sendData}) {}
 
   @protected
   void update() {}
@@ -48,8 +51,18 @@ abstract class BaseScene {
     _state?._setFps(fps);
   }
 
-  void setSendData(SendBeforeSceneData sendData) {
+  void setSendData(SaveData sendData) {
     _state?._setSendData(sendData);
+  }
+
+  void setSaveData(SaveData saveData) {
+    _state?._setSaveData(saveData);
+  }
+
+//GetFunctions//
+
+  SaveData? _getSaveData() {
+    return _state?._getSaveData();
   }
 
   //ChangeScene//
@@ -89,7 +102,8 @@ class SceneManager extends StatefulWidget {
   AppBar? _appBar = null;
   BaseScene? _scene = null;
   BaseScene? _nextScene = null;
-  SendBeforeSceneData? _sendData = null;
+  SaveData? _sendData = null;
+  SaveData? _saveData = null;
   BottomNavigationBar? _bottomNavigationBar = null;
 
   late Timer _timer;
@@ -130,8 +144,18 @@ class SceneManagerState extends State<SceneManager> {
     _timerStart();
   }
 
-  void _setSendData(SendBeforeSceneData sendData) {
+  void _setSendData(SaveData sendData) {
     widget._sendData = sendData;
+  }
+
+  void _setSaveData(SaveData saveData) {
+    widget._saveData = saveData;
+  }
+
+//GetFunctions//
+
+  SaveData? _getSaveData() {
+    return widget._saveData;
   }
 
 //ClearFunctions//
