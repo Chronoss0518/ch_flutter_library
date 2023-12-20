@@ -32,6 +32,7 @@ abstract class BaseScene {
   @protected
   void release() {}
 
+  @protected
   Widget build(BuildContext context);
 
   //SetFunctions//
@@ -86,7 +87,7 @@ class SceneManager extends StatefulWidget {
   SceneManagerState state = SceneManagerState();
   //Values//
   AppBar? _appBar = null;
-  late BaseScene _scene;
+  BaseScene? _scene = null;
   BaseScene? _nextScene = null;
   SendBeforeSceneData? _sendData = null;
   BottomNavigationBar? _bottomNavigationBar = null;
@@ -157,12 +158,12 @@ class SceneManagerState extends State<SceneManager> {
       widget._nextScene = null;
       return;
     }
-    widget._scene.release();
-    widget._scene._state = null;
+    widget._scene?.release();
+    widget._scene?._state = null;
 
     widget._scene = next;
-    widget._scene._state = this;
-    widget._scene.init(sendData: widget._sendData);
+    widget._scene?._state = this;
+    widget._scene?.init(sendData: widget._sendData);
 
     widget._nextScene = null;
     widget._sendData = null;
@@ -171,8 +172,8 @@ class SceneManagerState extends State<SceneManager> {
   void _timerStart() {
     widget._timer = Timer.periodic(
         Duration(milliseconds: (1000 / widget._fps).toInt()), (timer) {
-      widget._scene.update();
-      widget._scene.move();
+      widget._scene?.update();
+      widget._scene?.move();
 
       _changeScene();
     });
@@ -182,10 +183,10 @@ class SceneManagerState extends State<SceneManager> {
   @override
   Widget build(BuildContext context) {
     _init();
-    widget._scene.drawBegin(context);
+    widget._scene?.drawBegin(context);
     return Scaffold(
       appBar: widget._appBar,
-      body: widget._scene.build(context),
+      body: widget._scene?.build(context) ?? Container(),
       bottomNavigationBar: widget._bottomNavigationBar,
     );
   }
@@ -194,7 +195,7 @@ class SceneManagerState extends State<SceneManager> {
   void dispose() {
     super.dispose();
     if (!widget._isInitFlg) return;
-    widget._scene.release();
+    widget._scene = null;
     widget._isInitFlg = false;
     widget._timer.cancel();
   }
