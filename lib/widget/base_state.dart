@@ -18,6 +18,9 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
   @protected
   void update() {}
 
+  @protected
+  void move() {}
+
   @mustCallSuper
   @protected
   void release() {
@@ -95,6 +98,7 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
     _timer =
         Timer.periodic(Duration(milliseconds: (1000 / _fps).toInt()), (timer) {
       update();
+      move();
     });
   }
 
