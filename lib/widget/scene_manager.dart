@@ -3,18 +3,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+abstract class SendBeforeSceneData {}
+
 /*
-このクラスはStateの代わりに利用します
+このクラスはSceneManagerが管理します。
 このクラスは次のメソッドをoverrideして利用します。
 - init()initState、またはpopにより戻ってきた際に走ります
 - update()1フレーム毎に走ります。setFpsにより途中でfps値を変更できます
-- release()このStatefulWidgetが破棄されたとき(disposeが走る時)に走ります
-- changeEvemt()
+- move()1フレーム毎に走ります。updateの次に走るメソッドです
+- drawBegin(BuildContext context)buildが走るごとにはじめに走ります。
+- release()setSceneを行いこのSceneを破棄するとき、またはアプリケーションが終わる際に走ります
 */
 abstract class BaseScene extends StatelessWidget {
   @mustCallSuper
   @protected
-  void init() {}
+  void init({SendBeforeSceneData? sendData}) {}
 
   @protected
   void update() {}
@@ -40,6 +43,10 @@ abstract class BaseScene extends StatelessWidget {
 
   void setFps(int fps) {
     _state?._setFps(fps);
+  }
+
+  void setSendData(SendBeforeSceneData sendData) {
+    _state?._setSendData(sendData);
   }
 
   //ChangeScene//
@@ -112,6 +119,10 @@ class SceneManagerState extends State<SceneManager> {
     _timerStart();
   }
 
+  void _setSendData(SendBeforeSceneData sendData) {
+    _sendData = sendData;
+  }
+
 //ClearFunctions//
 
   void _clearAppBar() {
@@ -141,9 +152,10 @@ class SceneManagerState extends State<SceneManager> {
 
     _scene = next;
     _scene?._state = this;
-    _scene?.init();
+    _scene?.init(sendData: _sendData);
 
     _nextScene = null;
+    _sendData = null;
   }
 
   void _timerStart() {
@@ -169,10 +181,20 @@ class SceneManagerState extends State<SceneManager> {
     );
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    if (!_isInitFlg) return;
+    _scene = null;
+    _isInitFlg = false;
+    _timer.cancel();
+  }
+
   //Values//
   AppBar? _appBar = null;
   BaseScene? _scene = null;
   BaseScene? _nextScene = null;
+  SendBeforeSceneData? _sendData = null;
   BottomNavigationBar? _bottomNavigationBar = null;
 
   late Timer _timer;
