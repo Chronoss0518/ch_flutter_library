@@ -101,7 +101,7 @@ abstract class BaseStateEx<T extends StatefulWidget> extends BaseState<T> {
   @override
   void release() {
     super.release();
-    _timer.cancel();
+    _timerStop();
   }
 
   @mustCallSuper
@@ -116,7 +116,6 @@ abstract class BaseStateEx<T extends StatefulWidget> extends BaseState<T> {
   void setFps(int fps) {
     if (fps <= 0 || fps >= 1000) return;
     _fps = fps;
-    _timer.cancel();
     _timerStart();
   }
 
@@ -124,7 +123,10 @@ abstract class BaseStateEx<T extends StatefulWidget> extends BaseState<T> {
     
     if (_fps <= 0 || _fps >= 1000) return;
     if( update == null &&
-    move == null){return;}
+    move == null){
+      _timerStop();
+      return;
+    }
     
     _timer =
         Timer.periodic(Duration(milliseconds: (1000.0 / _fps.toDouble()).toInt()), (timer) {
@@ -133,7 +135,13 @@ abstract class BaseStateEx<T extends StatefulWidget> extends BaseState<T> {
     });
   }
 
-  late Timer _timer;
+  void _timerStop()
+  {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  Timer? _timer;
 
   int _fps = 60;
 }

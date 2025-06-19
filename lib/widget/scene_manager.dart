@@ -58,8 +58,8 @@ abstract class BaseScene {
 
 //GetFunctions//
 
-  SaveData? getSaveData() {
-    return _state?._getSaveData();
+  type? getSaveData<type extends SaveData>() {
+    return _state?._getSaveData<type>();
   }
 
   //ChangeScene//
@@ -126,7 +126,6 @@ class _SceneManagerState extends State<SceneManager> {
   void _setFps(int fps) {
     if (fps <= 0 || fps >= 1000) return;
     _fps = fps;
-    _timer.cancel();
     _timerStart();
   }
 
@@ -140,8 +139,8 @@ class _SceneManagerState extends State<SceneManager> {
 
 //GetFunctions//
 
-  SaveData? _getSaveData() {
-    return _saveData;
+  type? _getSaveData<type extends SaveData>() {
+    return _saveData as type;
   }
 
 //ClearFunctions//
@@ -184,7 +183,10 @@ class _SceneManagerState extends State<SceneManager> {
 
   void _timerStart() {
     if( _scene?.update == null &&
-    _scene?.move == null){return;}
+    _scene?.move == null){
+      _timeStop();
+      return;
+    }
     if (_fps <= 0 || _fps >= 1000) return;
     
     _timer = Timer.periodic(
@@ -212,11 +214,17 @@ class _SceneManagerState extends State<SceneManager> {
     if (!_isInitFlg) return;
     _scene = null;
     _isInitFlg = false;
-    _timer.cancel();
+    _timeStop();
+  }
+
+  void _timeStop()
+  {
+    _timer?.cancel();
+    _timer = null;
   }
 
   //Values//
-  late Timer _timer;
+  Timer? _timer;
   int _fps = 60;
   bool _isInitFlg = false;
 
