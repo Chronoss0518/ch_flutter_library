@@ -56,6 +56,12 @@ abstract class BaseScene {
     _state?._setSaveData(saveData);
   }
 
+  void setState(void Function() func)
+  {
+    _state?._setState(func);
+  }
+
+
 //GetFunctions//
 
   type? getSaveData<type extends SaveData>() {
@@ -135,6 +141,11 @@ class _SceneManagerState extends State<SceneManager> {
 
   void _setSaveData(SaveData saveData) {
     _saveData = saveData;
+  }
+  
+  void _setState(void Function() func)
+  {
+    setState(func);
   }
 
 //GetFunctions//
