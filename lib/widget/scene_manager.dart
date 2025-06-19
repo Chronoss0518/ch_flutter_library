@@ -219,6 +219,7 @@ class _SceneManagerState extends State<SceneManager> {
 
   void _timeStop()
   {
+    if(_timer == null)return;
     _timer?.cancel();
     _timer = null;
   }

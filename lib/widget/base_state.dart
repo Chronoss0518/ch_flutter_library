@@ -137,6 +137,7 @@ abstract class BaseStateEx<T extends StatefulWidget> extends BaseState<T> {
 
   void _timerStop()
   {
+    if(_timer == null)return;
     _timer?.cancel();
     _timer = null;
   }
