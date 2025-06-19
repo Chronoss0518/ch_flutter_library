@@ -22,14 +22,11 @@ abstract class BaseScene {
   @protected
   void init({SaveData? sendData}) {}
 
-  @protected
-  void update() {}
+  void Function()? update;
 
-  @protected
-  void move() {}
+  void Function()? move;
 
-  @protected
-  void drawBegin(BuildContext context) {}
+  void Function(BuildContext context)? drawBegin;
 
   @mustCallSuper
   @protected
@@ -61,7 +58,7 @@ abstract class BaseScene {
 
 //GetFunctions//
 
-  SaveData? _getSaveData() {
+  SaveData? getSaveData() {
     return _state?._getSaveData();
   }
 
@@ -87,119 +84,113 @@ abstract class BaseScene {
     _state?._repaint(func);
   }
 
-  SceneManagerState? _state;
+  _SceneManagerState? _state;
   BuildContext? get context => _state?.context;
 }
 
 class SceneManager extends StatefulWidget {
   //Constructor Destructor//
   SceneManager(BaseScene startScene, {super.key}) {
-    _nextScene = startScene;
+    _state._nextScene = startScene;
   }
 
-  SceneManagerState state = SceneManagerState();
-  //Values//
-  AppBar? _appBar = null;
-  BaseScene? _scene = null;
-  BaseScene? _nextScene = null;
-  SaveData? _sendData = null;
-  SaveData? _saveData = null;
-  BottomNavigationBar? _bottomNavigationBar = null;
-
-  late Timer _timer;
-  int _fps = 60;
-  bool _isInitFlg = false;
+  _SceneManagerState _state = _SceneManagerState();
   //OverrideFunction//
   @override
-  State<SceneManager> createState() => state;
+  State<SceneManager> createState() => _state;
 }
 
-class SceneManagerState extends State<SceneManager> {
+class _SceneManagerState extends State<SceneManager> {
   //Initialize Release//
   void _init() {
-    if (widget._isInitFlg) return;
+    if (_isInitFlg) return;
     _timerStart();
     _changeScene();
-    widget._isInitFlg = true;
+    _isInitFlg = true;
   }
 
   //SetFunctions//
   void _setAppBar(AppBar? appBar) {
-    widget._appBar = appBar;
+    setState((){_appBar = appBar;});
   }
 
   void _setBottomNavigationBar(BottomNavigationBar? bottomNavigationBar) {
-    widget._bottomNavigationBar = bottomNavigationBar;
+    setState((){_bottomNavigationBar = bottomNavigationBar;});
   }
 
   void _setScene(BaseScene scene) {
     if (scene._state != null) return;
-    widget._nextScene = scene;
+    _nextScene = scene;
   }
 
   void _setFps(int fps) {
     if (fps <= 0 || fps >= 1000) return;
-    widget._fps = fps;
-    widget._timer.cancel();
+    _fps = fps;
+    _timer.cancel();
     _timerStart();
   }
 
   void _setSendData(SaveData sendData) {
-    widget._sendData = sendData;
+    _sendData = sendData;
   }
 
   void _setSaveData(SaveData saveData) {
-    widget._saveData = saveData;
+    _saveData = saveData;
   }
 
 //GetFunctions//
 
   SaveData? _getSaveData() {
-    return widget._saveData;
+    return _saveData;
   }
 
 //ClearFunctions//
 
   void _clearAppBar() {
-    widget._appBar = null;
+    setState((){_appBar = null;});
   }
 
   void _clearBottomNavigationBar() {
-    widget._bottomNavigationBar = null;
+    setState((){_bottomNavigationBar = null;});
   }
 
 //OtherFunctions//
 
   void _repaint(void Function() func) {
-    if (!widget._isInitFlg) return;
+    if (!_isInitFlg) return;
     setState(func);
   }
 
   void _changeScene() {
-    if (widget._nextScene == null) return;
-    BaseScene next = widget._nextScene!;
+    
+    if (_nextScene == null) return;
+    BaseScene next = _nextScene!;
     if (next._state != null) {
-      widget._nextScene = null;
+      _nextScene = null;
       return;
     }
-    widget._scene?.release();
-    widget._scene?._state = null;
+    setState((){
+    _scene?.release();
+    _scene?._state = null;
 
-    widget._scene = next;
-    widget._scene?._state = this;
-    widget._scene?.init(sendData: widget._sendData);
+    _scene = next;
+    _scene?._state = this;
+    _scene?.init(sendData: _sendData);
 
-    widget._nextScene = null;
-    widget._sendData = null;
+    _nextScene = null;
+    _sendData = null;
+    });
   }
 
   void _timerStart() {
-    widget._timer = Timer.periodic(
-        Duration(milliseconds: (1000 / widget._fps).toInt()), (timer) {
-      widget._scene?.update();
-      widget._scene?.move();
-
-      _changeScene();
+    if( _scene?.update == null &&
+    _scene?.move == null){return;}
+    if (_fps <= 0 || _fps >= 1000) return;
+    
+    _timer = Timer.periodic(
+        Duration(milliseconds: (1000 / _fps).toInt()), (timer) {
+      if( _scene?.update != null)_scene?.update!();
+      if( _scene?.move != null)_scene?.move!();
     });
   }
 
@@ -207,20 +198,33 @@ class SceneManagerState extends State<SceneManager> {
   @override
   Widget build(BuildContext context) {
     _init();
-    widget._scene?.drawBegin(context);
+    if(_scene?.drawBegin != null)_scene?.drawBegin!(context);
     return Scaffold(
-      appBar: widget._appBar,
-      body: widget._scene?.build(context) ?? Container(),
-      bottomNavigationBar: widget._bottomNavigationBar,
+      appBar: _appBar,
+      body: _scene?.build(context) ?? Container(),
+      bottomNavigationBar: _bottomNavigationBar,
     );
   }
 
   @override
   void dispose() {
     super.dispose();
-    if (!widget._isInitFlg) return;
-    widget._scene = null;
-    widget._isInitFlg = false;
-    widget._timer.cancel();
+    if (!_isInitFlg) return;
+    _scene = null;
+    _isInitFlg = false;
+    _timer.cancel();
   }
+
+  //Values//
+  late Timer _timer;
+  int _fps = 60;
+  bool _isInitFlg = false;
+
+  AppBar? _appBar;
+  BaseScene? _scene;
+  BaseScene? _nextScene;
+  SaveData? _sendData;
+  SaveData? _saveData;
+  BottomNavigationBar? _bottomNavigationBar;
+
 }
