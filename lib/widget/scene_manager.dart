@@ -140,7 +140,7 @@ class _SceneManagerState extends State<SceneManager> {
 //GetFunctions//
 
   type? _getSaveData<type extends SaveData>() {
-    return _saveData as type;
+    return _saveData as type?;
   }
 
 //ClearFunctions//
