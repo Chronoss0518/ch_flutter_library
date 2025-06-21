@@ -1,7 +1,5 @@
-import 'dart:async';
-
+import 'package:ch_flutter_library/widget/object_function_base.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 /*
 このクラスはStateの代わりに利用します
@@ -90,18 +88,14 @@ abstract class BaseState<T extends StatefulWidget> extends State<T> {
 - release()このStatefulWidgetが破棄されたとき(disposeが走る時)に走ります
 - changeEvemt()
 */
-abstract class BaseStateEx<T extends StatefulWidget> extends BaseState<T> {
+abstract class BaseStateEx<T extends StatefulWidget> extends BaseState<T> with ObjectFunctionBase,ObjectFunctionRunnerBase {
   
-  void Function()? update;
-
-  void Function()? move;
-
   @mustCallSuper
   @protected
   @override
   void release() {
     super.release();
-    _timerStop();
+    timerStop();
   }
 
   @mustCallSuper
@@ -110,39 +104,7 @@ abstract class BaseStateEx<T extends StatefulWidget> extends BaseState<T> {
   void initState() {
     super.initState();
     init();
-    _timerStart();
+    timerStart(this);
   }
 
-  void setFps(int fps) {
-    if (fps <= 0 || fps >= 1000) return;
-    _fps = fps;
-    _timerStart();
-  }
-
-  void _timerStart() {
-    
-    if (_fps <= 0 || _fps >= 1000) return;
-    if( update == null &&
-    move == null){
-      _timerStop();
-      return;
-    }
-    
-    _timer =
-        Timer.periodic(Duration(milliseconds: (1000.0 / _fps.toDouble()).toInt()), (timer) {
-      if(update != null)update!();
-      if(move != null)move!();
-    });
-  }
-
-  void _timerStop()
-  {
-    if(_timer == null)return;
-    _timer?.cancel();
-    _timer = null;
-  }
-
-  Timer? _timer;
-
-  int _fps = 60;
 }

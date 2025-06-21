@@ -1,7 +1,5 @@
-import 'dart:async';
-
+import 'package:ch_flutter_library/widget/object_function_base.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 /*
 Sceneを跨ぐ際に利用する保持したい情報をも損するためのクラス
@@ -17,14 +15,10 @@ abstract class SaveData {}
 - drawBegin(BuildContext context)buildが走るごとにはじめに走ります。
 - release()setSceneを行いこのSceneを破棄するとき、またはアプリケーションが終わる際に走ります
 */
-abstract class BaseScene {
+abstract class BaseScene with ObjectFunctionBase {
   @mustCallSuper
   @protected
   void init({SaveData? sendData}) {}
-
-  void Function()? update;
-
-  void Function()? move;
 
   void Function(BuildContext context)? drawBegin;
 
@@ -56,9 +50,8 @@ abstract class BaseScene {
     _state?._setSaveData(saveData);
   }
 
-  void setState(void Function() func)
-  {
-    _state?._setState(func);
+  void setState(void Function() func){
+    _state?._repaint(func);
   }
 
 
@@ -90,6 +83,14 @@ abstract class BaseScene {
     _state?._repaint(func);
   }
 
+  void timerStart(){
+    _state?._timerStart();
+  }
+
+  void timerStop(){
+    _state?._timerStart();
+  }
+
   _SceneManagerState? _state;
   BuildContext? get context => _state?.context;
 }
@@ -100,13 +101,13 @@ class SceneManager extends StatefulWidget {
     _state._nextScene = startScene;
   }
 
-  _SceneManagerState _state = _SceneManagerState();
+  final _SceneManagerState _state = _SceneManagerState();
   //OverrideFunction//
   @override
   State<SceneManager> createState() => _state;
 }
 
-class _SceneManagerState extends State<SceneManager> {
+class _SceneManagerState extends State<SceneManager> with ObjectFunctionRunnerBase {
   //Initialize Release//
   void _init() {
     if (_isInitFlg) return;
@@ -130,9 +131,7 @@ class _SceneManagerState extends State<SceneManager> {
   }
 
   void _setFps(int fps) {
-    if (fps <= 0 || fps >= 1000) return;
-    _fps = fps;
-    _timerStart();
+    if(_scene != null)setFps(fps,_scene!);
   }
 
   void _setSendData(SaveData sendData) {
@@ -143,11 +142,6 @@ class _SceneManagerState extends State<SceneManager> {
     _saveData = saveData;
   }
   
-  void _setState(void Function() func)
-  {
-    setState(func);
-  }
-
 //GetFunctions//
 
   type? _getSaveData<type extends SaveData>() {
@@ -193,18 +187,7 @@ class _SceneManagerState extends State<SceneManager> {
   }
 
   void _timerStart() {
-    if( _scene?.update == null &&
-    _scene?.move == null){
-      _timeStop();
-      return;
-    }
-    if (_fps <= 0 || _fps >= 1000) return;
-    
-    _timer = Timer.periodic(
-        Duration(milliseconds: (1000 / _fps).toInt()), (timer) {
-      if( _scene?.update != null)_scene?.update!();
-      if( _scene?.move != null)_scene?.move!();
-    });
+    if(_scene != null)timerStart(_scene!);
   }
 
   //OverrideFunction//
@@ -225,19 +208,14 @@ class _SceneManagerState extends State<SceneManager> {
     if (!_isInitFlg) return;
     _scene = null;
     _isInitFlg = false;
-    _timeStop();
+    _timerStop();
   }
 
-  void _timeStop()
-  {
-    if(_timer == null)return;
-    _timer?.cancel();
-    _timer = null;
+  void _timerStop(){
+    timerStop();
   }
 
   //Values//
-  Timer? _timer;
-  int _fps = 60;
   bool _isInitFlg = false;
 
   AppBar? _appBar;
