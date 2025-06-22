@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-abstract class GameObjectComponent {
+final String _rootName = "__root__game__object__${DateTime.now().toString()}";
+
+mixin GameObjectComponent {
+
   @protected
   void init() {}
 
@@ -16,36 +19,23 @@ abstract class GameObjectComponent {
   @protected
   void drawBegin(BuildContext context) {}
 
+  void destroy(){
+    var val = _haveObject?._componentList.indexOf(this) ?? -1;
+    if(val < 0)return;
+    release();
+    _haveObject?._childList.removeAt(val);
+  }
+
   GameObject? get looker => _haveObject;
-  GameObject? _haveObject = null;
+  GameObject? _haveObject;
 }
 
 final class GameObject {
-  //Base Functions//
-  void _init() {
-    if (!_isEnableFlg) return;
-    if (_isInitFlg) return;
 
-    for (var com in _componentList) {
-      com.init();
-    }
-    for (var child in _childList) {
-      child._init();
-    }
-    _isInitFlg = true;
-  }
+  GameObject._internal();
 
-  void _release() {
-    if (!_isEnableFlg) return;
-    if (!_isInitFlg) return;
-
-    for (var com in _componentList) {
-      com.release();
-    }
-    for (var child in _childList) {
-      child._release();
-    }
-  }
+  String get name => _objectName;
+  String get tagName => _manager != null ? _manager!._tagMap[_tagNo]! : "";
 
   void _update() {
     if (!_isEnableFlg) return;
@@ -107,20 +97,8 @@ final class GameObject {
   }
 
   //Get Functions//
-  String getObjectName() {
-    return _objectName;
-  }
-
-  int getTagNo() {
-    if (_manager == null) return -1;
-    if (_manager!._tagMap.containsKey(_tagNo)) return -1;
-    return _tagNo;
-  }
-
-  String getTagName() {
-    if (_manager == null) return "";
-    if (_manager!._tagMap.containsKey(_tagNo)) return "";
-    return _manager!._tagMap[_tagNo]!;
+  GameObject? getParent(){
+    return _parent?._objectName == _rootName ? null : _parent!;
   }
 
   //Add Functions//
@@ -129,6 +107,14 @@ final class GameObject {
     if (component._haveObject != null) return;
     component._haveObject = this;
     _componentList.add(component);
+  }
+
+  Type addComponentFromType<Type extends GameObjectComponent>(Type Function() func)
+  {
+    var component = func();
+    component._haveObject = this;
+    _componentList.add(component);
+    return component;
   }
 
   void addChild(GameObject child) {
@@ -142,7 +128,7 @@ final class GameObject {
   //Find Functions//
   GameObject? findFromName(String objectName) {
     if (_objectName == objectName) return this;
-    GameObject? res = null;
+    GameObject? res;
     for (var child in _childList) {
       if (res != null) break;
       res = child.findFromName(objectName);
@@ -171,7 +157,7 @@ final class GameObject {
   GameObject? findFromTagNo(int tag) {
     if (_manager == null) return null;
     if (_tagNo == tag) return this;
-    GameObject? res = null;
+    GameObject? res;
     for (var child in _childList) {
       if (res != null) break;
       res = child.findFromTagNo(tag);
@@ -202,7 +188,7 @@ final class GameObject {
   GameObject? findFromTagName(String tag) {
     if (_manager == null) return null;
     if (_manager!._tagMap[_tagNo] == tag) return this;
-    GameObject? res = null;
+    GameObject? res;
     for (var child in _childList) {
       if (res != null) break;
       res = child.findFromTagName(tag);
@@ -230,19 +216,79 @@ final class GameObject {
     return res;
   }
 
+  //Other Functions//
+
+  void destroy()
+  {
+    for(int i = 0;i < _childList.length;i++)
+    {
+      _childList[i].destroy();
+    }
+    _childList.clear();
+    for(int i = 0;i < _componentList.length;i++)
+    {
+      _componentList[i].destroy();
+    }
+    _componentList.clear();
+
+    var val = _parent?._childList.indexOf(this) ?? -1;
+    if(val < 0)return;
+    _parent?._childList.removeAt(val);
+
+  }
+
   String _objectName = "";
   int _tagNo = -1;
   bool _isEnableFlg = true;
-  bool _isInitFlg = false;
-  var _componentList = <GameObjectComponent>[];
+  final _componentList = <GameObjectComponent>[];
 
-  GameObject? _parent = null;
-  var _childList = <GameObject>[];
-  GameObjectManager? _manager = null;
+  GameObject? _parent;
+  final _childList = <GameObject>[];
+  GameObjectManager? _manager;
 }
 
 class GameObjectManager {
-  GameObject rootGameObject = GameObject();
 
-  var _tagMap = <int, String>{};
+  factory GameObjectManager(){
+    var res = GameObjectManager._internal();
+    res._rootObject._manager = res;
+    res._rootObject._objectName = _rootName;
+    return res;
+  }
+
+  void update()
+  {
+    for(int i =0 ;i<
+    _rootObject._childList.length;i++){
+      _rootObject._childList[i]._update();
+    }
+  }
+
+  void move()
+  {
+    for(int i =0 ;i<
+    _rootObject._childList.length;i++){
+      _rootObject._childList[i]._move();
+    }
+  }
+
+  void drawBegin(BuildContext context)
+  {
+    for(int i =0 ;i<
+    _rootObject._childList.length;i++){
+      _rootObject._childList[i]._drawBegin(context);
+    }
+  }
+
+  GameObject createObject(){
+    var obj = GameObject._internal();
+    _rootObject.addChild(obj);
+    obj._manager = this;
+    return obj;
+  }
+
+  GameObjectManager._internal();
+
+  final _rootObject = GameObject._internal();
+  final _tagMap = <int, String>{};
 }
